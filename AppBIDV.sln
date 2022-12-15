@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32802.440
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppBIDV", "AppBIDV\AppBIDV.csproj", "{6F7ABE30-450A-4465-A9C6-177F930F13F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBIDV", "DataBIDV\DataBIDV.csproj", "{14ACAA4A-D29D-499B-B9A0-C4AF9855F447}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F7ABE30-450A-4465-A9C6-177F930F13F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F7ABE30-450A-4465-A9C6-177F930F13F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F7ABE30-450A-4465-A9C6-177F930F13F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F7ABE30-450A-4465-A9C6-177F930F13F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14ACAA4A-D29D-499B-B9A0-C4AF9855F447}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14ACAA4A-D29D-499B-B9A0-C4AF9855F447}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14ACAA4A-D29D-499B-B9A0-C4AF9855F447}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14ACAA4A-D29D-499B-B9A0-C4AF9855F447}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {460D8E1D-0E18-4B7C-9C61-64EB0B254EE9}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,14 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+
+@if (User.Identity.IsAuthenticated)
+{
+    <a class="nav-link text-white" href="/Login/Logout">@User.Identity.Name (IP: @Context.Connection.RemoteIpAddress.MapToIPv4().ToString())</a>
+}
+else
+{
+    <a class="nav-link text-white" href="/Login/Login">Đăng nhập</a>
+}

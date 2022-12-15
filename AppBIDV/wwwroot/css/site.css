@@ -1,0 +1,156 @@
+﻿body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.navbar {
+    padding: 0;
+}
+
+.bg-tool {
+    background-color: #3882b6 !important;
+}
+
+.logo {
+    width: 38px;
+    height: 38px;
+    vertical-align: middle;
+}
+
+.navbar-brand {
+    padding: 6px 15px;
+    margin-right: 0;
+    background-color: #183ea9 !important;
+}
+
+.navbar-expand-sm .navbar-nav .nav-link {
+    padding-left: 13px;
+    padding-right: 13px;
+}
+
+.nav-item > .nav-link {
+    padding: 13px;
+}
+
+.navbar-collapse .nav-link:hover {
+    background-color: #183ea9 !important;
+}
+
+.nav-item > .dropdown-menu {
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    top: 98%;
+}
+
+    .nav-item > .dropdown-menu .dropdown-item {
+        padding: 10px;
+        box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px;
+    }
+
+        .nav-item > .dropdown-menu .dropdown-item:hover {
+            background-color: #183ea9 !important;
+        }
+
+.dataTables_length, .dataTables_filter {
+    display: none;
+}
+
+.mobile, .tablet, .pc {
+    display: none;
+}
+
+/*Phones (less than 740px)*/
+@media only screen and (max-width: 739px) {
+    body {
+        font-size: 12px;
+    }
+
+    .logo {
+        width: 35px;
+        height: 35px;
+        vertical-align: middle;
+    }
+
+    .navbar-brand {
+        padding: 4px 13px;
+    }
+
+    .mobile {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-control {
+        height: 25px;
+        line-height: 12px;
+        font-size: 12px;
+        padding: 2px;
+        margin-top: 4px;
+    }
+
+    .col-form-label {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .input-group-append .input-group-text {
+        font-size:12px;
+        padding: 5px;
+    }
+
+    .fa, .fas {
+        font-size: 12px;
+    }
+
+    .bootstrap-datetimepicker-widget {
+        font-size: 12px;
+        width: 100px;
+    }
+
+    .table td, .table th{
+        padding:5px;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-right:14px; 
+    }
+    .select2-container .select2-selection--single{
+        height:28px;
+        margin-top:2px;
+    }
+}
+
+/*Tablets (740px and 1024px)*/
+@media only screen and (min-width: 740px) and (max-width: 1023px) {
+
+    .tablet {
+        display: block;
+    }
+
+    .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
+        width: 38em;
+    }
+}
+
+/*Desktops(1024px and up)*/
+@media only screen and (min-width: 1024px) {
+    .pc {
+        display: block;
+    }
+
+    .dropdown-hover:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .dropdown-hover > .dropdown-toggle:active {
+        pointer-events: none;
+    }
+}

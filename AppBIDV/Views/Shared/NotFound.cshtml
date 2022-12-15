@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = ViewBag.ErrorMessage;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .layout-navbar-fixed .wrapper .content-wrapper {
+        margin-top: 50px;
+    }
+
+    .error-page > .error-content {
+        margin-left: 50px;
+    }
+</style>
+<div class="content-wrapper">
+    <!-- Main content -->
+    <section class="content">
+        <div class="error-page">
+            <br/>
+            <div class="col">
+                <div class="error-content text-center" style="font-size:30px; font-weight:bold">
+                    <h2><i class="fas fa-exclamation-triangle text-warning"></i> @ViewBag.ErrorMessage</h2>
+
+                    <p>
+                        @ViewBag.Msg
+                        <br />
+                        <a href="@Url.Action("Index","Home")">Bấm vào đây để trở về trang chủ</a>
+                    </p>
+                </div>
+            </div>
+            <div class="col">
+                <img src="@ViewBag.ErrorImage" alt="error-@ViewBag.ErrorMessage" />
+            </div>
+
+            <!-- /.error-content -->
+        </div>
+        <!-- /.error-page -->
+    </section>
+    <!-- /.content -->
+</div>

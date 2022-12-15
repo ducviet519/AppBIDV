@@ -1,0 +1,71 @@
+﻿@{
+    ViewData["Title"] = "500 - Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    body{
+        margin:0;
+        padding:0;
+    }
+    p{
+        margin:0;
+    }
+    .layout-navbar-fixed .wrapper .content-wrapper{
+        margin-top: 50px;
+    }
+    .error-page > .error-content{
+        margin-left: 50px;
+    }
+</style>
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <!--<section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                </div>
+                <div class="col-sm-6">
+                </div>
+            </div>
+        </div>--><!-- /.container-fluid -->
+    <!--</section>-->
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="error-page">
+            <br/>
+            <div class="col">
+                <div class="error-content" style="font-size:30px; font-weight:bold">
+                    <h2><i class="fas fa-exclamation-triangle text-danger"></i> Lỗi! Sự cố không mong muốn.</h2>
+                    <p>
+                        Chúng tôi sẽ khắc phục trong thời gian sớm nhất.
+                        <a href="@Url.Action("Index","Home")">Bấm vào đây để trở về trang chủ</a>
+                    </p>
+                </div>
+            </div>
+            <div class="col">
+                <img src="~/images/500-internal-server-error.svg" alt="error-500">
+            </div>
+            @*<h2 class="headline text-danger">500</h2>*@
+
+        </div>
+        <br />
+        <p>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            @ViewBag.ExceptionPath <br />
+            @ViewBag.ExceptionMessage <br />
+            @ViewBag.StackTrace <br />
+        </p>
+
+        <!-- /.error-page -->
+
+    </section>
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
