@@ -49,6 +49,8 @@ namespace DataBIDV.Services.Repositories
 
             try
             {
+                //var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+                //httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/openapi/oauth2/token");
                 httpRequestMessage.Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request), Encoding.UTF8);
                 httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded");               
