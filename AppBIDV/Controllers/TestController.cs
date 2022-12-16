@@ -24,16 +24,17 @@ namespace AppBIDV.Controllers
             _webHostEnvironment = webHostEnvironment;
             _services = services;
         }
-        public async Task<IActionResult> Index(RequestModel request)
+        public async Task<IActionResult> Index()
         {
             string token = StaticHelper.EncodeBase64("0123456789");
-            request.client_id = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.ContentRootPath, "Keys\\client_id.asc"));
-            request.client_secret = System.IO.File.ReadAllText(Path.Combine(_webHostEnvironment.ContentRootPath, "Keys\\client_secret.asc"));
-            request.grant_type = "client_credentials";
-            request.scope = "read";
-            await _services.API.Get_API_Token(request);
-            await _services.API.Get_DanhSachGiaoDich(token,request);
-           
+            await _services.API.Get_API_Token();
+
+            var requestBody = new RequestBody { accountNo = "0123456789", pageNum = 5, transDate = "221216" };
+            await _services.API.Get_DanhSachGiaoDich_Encrypt(token, requestBody);
+            await _services.API.Get_DanhSachGiaoDich(token, requestBody);
+            await _services.API.Get_TruyVanSoDu_DauNgay(token, requestBody);
+
+
             return View();
         }
     }

@@ -12,5 +12,14 @@ namespace DataBIDV.Models
         public string scope { get; set; }
         public string client_id { get; set; }
         public string client_secret { get; set; }
+
+    }
+
+    public class RequestBody
+    {
+        public string accountNo { get; set; }
+        public string transDate { get; set; }
+        public int pageNum { get; set; }
+
     }
 }
