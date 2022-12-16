@@ -16,4 +16,15 @@ namespace DataBIDV.Models
         public string remark { get; set; }
     }
 
+    public class GiaoDich
+    {
+        public string requestId { get; set; }
+        public string amount { get; set; }
+        public string curr { get; set; }
+        public string dorc { get; set; }
+        public string transDate { get; set; }
+        public string transTime { get; set; }
+        public string remark { get; set; }
+        public string accountNo { get; set; }
+    }
 }
