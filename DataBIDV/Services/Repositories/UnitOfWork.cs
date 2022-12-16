@@ -9,12 +9,10 @@ namespace DataBIDV.Services.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        //public ILoginRepository Permission { get; }
-        public UnitOfWork(
-            //ILoginRepository loginRepository,
-            )
+        public IConnectAPIService API { get; }
+        public UnitOfWork(IConnectAPIService connectAPI)
         {
-            //Permission = loginRepository;
+            API = connectAPI;
         }
 
     }

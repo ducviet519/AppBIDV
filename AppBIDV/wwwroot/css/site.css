@@ -2,6 +2,19 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.background-page {
+    background: url(../images/WPP.jpg) no-repeat center center fixed;
+    background-size: cover;
+    object-fit: cover;
+    object-position: center;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 50px;
+    bottom: 0;
+    width: 100%;
+}
+
 .container-fluid {
     padding-left: 0;
     padding-right: 0;
@@ -126,6 +139,7 @@
         height:28px;
         margin-top:2px;
     }
+    
 }
 
 /*Tablets (740px and 1024px)*/
@@ -138,6 +152,7 @@
     .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
         width: 38em;
     }
+    
 }
 
 /*Desktops(1024px and up)*/
@@ -153,4 +168,5 @@
     .dropdown-hover > .dropdown-toggle:active {
         pointer-events: none;
     }
+    
 }

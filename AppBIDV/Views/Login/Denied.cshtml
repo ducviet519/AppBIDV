@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = ViewBag.ErrorMessage;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    .layout-navbar-fixed .wrapper .content-wrapper {
+        margin-top: 50px;
+    }
+
+    .error-page > .error-content {
+        margin-left: 50px;
+    }
+</style>
+<div class="content-wrapper">
+    <!-- Main content -->
+    <section class="content">
+        <div class="error-page">
+            <br/>
+            <div class="col">
+                <div class="error-content text-center" style="font-size:14px; font-weight:bold">
+                    <h2><i class="fas fa-exclamation-triangle text-warning"></i> Truy cập bị từ chối!</h2>
+
+                    <p>
+                        Bạn không có quyền truy cập trang web này. Vui lòng liên hệ phòng IT - 8555
+                        <br />
+                        <a href="@Url.Action("Index","Home")">Bấm vào đây để trở về trang chủ</a>
+                    </p>
+                </div>
+            </div>
+            <div class="col"><img src="/images/403-error-forbidden.svg" alt="error-unauthorized" /></div>
+            <!-- /.error-content -->
+        </div>
+        <!-- /.error-page -->
+    </section>
+    <!-- /.content -->
+</div>

@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataBIDV.Services.Interfaces
 {
-    public interface IUnitOfWork
+    public class IHttpClientServiceImplementation
     {
-        IConnectAPIService API { get; }
-
     }
 }
