@@ -8,10 +8,6 @@ namespace DataBIDV.Models
 {
     public class GiaoDichModel
     {
-
-    }
-    public class Response_GiaoDich
-    {
         public string amount { get; set; }
         public string curr { get; set; }
         public string dorc { get; set; }
@@ -19,4 +15,5 @@ namespace DataBIDV.Models
         public string transTime { get; set; }
         public string remark { get; set; }
     }
+
 }

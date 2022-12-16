@@ -18,6 +18,7 @@ using PgpCore;
 using DataBIDV.Extensions;
 using System.Net.Http.Json;
 
+
 namespace DataBIDV.Services.Repositories
 {
     public class ConnectAPIService : IConnectAPIService
@@ -25,7 +26,6 @@ namespace DataBIDV.Services.Repositories
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly string client_id = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_id.asc"));
         private readonly string client_secret = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_secret.asc"));
-        private readonly string public_key  = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\test_key.asc"));
         public ConnectAPIService()
         {
             _httpClient.BaseAddress = new Uri("https://apithanhtoan.com/");
@@ -34,6 +34,8 @@ namespace DataBIDV.Services.Repositories
         }
         public async Task<TokenAPI> Get_API_Token()
         {
+
+
             TokenAPI data = new TokenAPI();
             var query = new Dictionary<string, string>
             {
@@ -72,12 +74,14 @@ namespace DataBIDV.Services.Repositories
             
             List<GiaoDichModel> data = new List<GiaoDichModel>();
             
-            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
+            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);           
             string requestID = Guid.NewGuid().ToString("D");
+            
             try
             {
                 //Encrypt
-                EncryptionKeys encryptionKeys = new EncryptionKeys(public_key);
+                string publicKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\key.asc"));
+                EncryptionKeys encryptionKeys = new EncryptionKeys(publicKey);
                 PGP pgp = new PGP(encryptionKeys);
                 string encryptedContent = StaticHelper.EncodeBase64(await pgp.EncryptArmoredStringAsync(System.Text.Json.JsonSerializer.Serialize(request)));
                 string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { data = encryptedContent });
