@@ -38,10 +38,10 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin danh sách giao dịch (Có mã hóa dữ liệu)
-        public async Task<List<GiaoDichModel>> Get_DanhSachGiaoDich_Encrypt(RequestBody requestBody)
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(RequestBody requestBody)
         {
 
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
@@ -76,9 +76,9 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin danh sách giao dịch (Không mã hóa dữ liệu)
-        public async Task<List<GiaoDichModel>> Get_DanhSachGiaoDich(RequestBody requestBody)
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich(RequestBody requestBody)
         {
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
@@ -108,9 +108,9 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư đầu ngày
-        public async Task<List<GiaoDichModel>> Get_TruyVanSoDu_DauNgay(RequestBody requestBody)
+        public async Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(RequestBody requestBody)
         {
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
@@ -140,9 +140,9 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư tài khoản
-        public async Task<GiaoDichModel> Get_TruyVanSoDu_TaiKhoan(RequestBody requestBody)
+        public async Task<GiaoDich> Get_TruyVanSoDu_TaiKhoan(RequestBody requestBody)
         {
-            GiaoDichModel data = new GiaoDichModel();
+            GiaoDich data = new GiaoDich();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");

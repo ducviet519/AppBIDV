@@ -22,13 +22,7 @@ namespace AppBIDV
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureKestrel(options => {
-                        options.ConfigureHttpsDefaults(o =>
-                        {
-                            o.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
-                        });
-                    });
+                    webBuilder.UseStartup<Startup>();                    
                 });
     }
 }

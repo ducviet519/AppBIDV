@@ -86,14 +86,14 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin danh sách giao dịch (Có mã hóa dữ liệu)
-        public async Task<List<GiaoDichModel>> Get_DanhSachGiaoDich_Encrypt(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(string token, RequestBody request)
         {           
-            List<GiaoDichModel> data = new List<GiaoDichModel>();           
+            List<GiaoDich> data = new List<GiaoDich>();           
             try
             {
                 //Encrypt
                 string encryptedContent = StaticHelper.EncryptUsingPublicKey(System.Text.Json.JsonSerializer.Serialize(request));
-                string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { data = encryptedContent });
+                string jsonContent = JsonConvert.SerializeObject(new { data = encryptedContent });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/acctHis/v1.0");
 
@@ -106,7 +106,11 @@ namespace DataBIDV.Services.Repositories
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();  
                 }
-
+                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\acctHis_v1.0.json"));
+                var res = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
+                var decode = StaticHelper.DecodeBase64(res.data);
+                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(decode);
+                
                 return data ;
             }
             catch (Exception ex)
@@ -117,16 +121,16 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin danh sách giao dịch (Không mã hóa dữ liệu)
-        public async Task<List<GiaoDichModel>> Get_DanhSachGiaoDich(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich(string token, RequestBody request)
         {
 
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
             try
             {
-                string jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                string jsonContent = JsonConvert.SerializeObject(request);
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctHis/v1.1");
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
@@ -139,7 +143,8 @@ namespace DataBIDV.Services.Repositories
                     var responseContent = await response.Content.ReadAsStringAsync();
 
                 }
-
+                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\getAcctHis_v1.1.json"));
+                Root_GiaoDich myDeserializedClass = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
                 return data;
             }
             catch (Exception ex)
@@ -150,15 +155,15 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư đầu ngày
-        public async Task<List<GiaoDichModel>> Get_TruyVanSoDu_DauNgay(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(string token, RequestBody request)
         {
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
             try
             {
-                string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { pageNum = request.pageNum });
+                string jsonContent = JsonConvert.SerializeObject(new { pageNum = request.pageNum });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/openningBal/v1");
 
@@ -183,16 +188,16 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư tài khoản
-        public async Task<List<GiaoDichModel>> Get_TruyVanSoDu_TaiKhoan(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(string token, RequestBody request)
         {
 
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
+            List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
             string requestID = Guid.NewGuid().ToString("N");
             try
             {
-                string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { accountNo = request.accountNo });
+                string jsonContent = JsonConvert.SerializeObject(new { accountNo = request.accountNo });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctDetail/v1");
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
