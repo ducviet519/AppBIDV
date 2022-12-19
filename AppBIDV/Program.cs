@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ namespace AppBIDV
 {
     public class Program
     {
+
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
@@ -21,6 +23,12 @@ namespace AppBIDV
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.ConfigureKestrel(options => {
+                        options.ConfigureHttpsDefaults(o =>
+                        {
+                            o.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+                        });
+                    });
                 });
     }
 }

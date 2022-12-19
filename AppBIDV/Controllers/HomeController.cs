@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace AppBIDV.Controllers
 {
-    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

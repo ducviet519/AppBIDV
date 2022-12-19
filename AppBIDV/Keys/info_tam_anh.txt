@@ -1,0 +1,9 @@
+Oauth2 app - Tam Anh
+Client id
+5fdc43607aba07a73c6fe5a62066f6e0
+
+Client secret
+7ed7a5a3ca071c83d5e977863bfc537e
+
+Passphrase
+bidv

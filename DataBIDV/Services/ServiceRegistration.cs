@@ -14,8 +14,7 @@ namespace DataBIDV.Services
         public static void AddInfrastructure(this IServiceCollection services)
         {
             services.AddTransient<IUnitOfWork, UnitOfWork>();
-            services.AddTransient<IConnectAPIService, ConnectAPIService>();
-            
+            services.AddTransient<IConnectAPI_BIDVClient, ConnectAPI_BIDVClient>();
         }
     }
 }

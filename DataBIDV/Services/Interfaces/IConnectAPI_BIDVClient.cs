@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataBIDV.Services.Interfaces
 {
-    public interface IConnectAPIService
+    public interface IConnectAPI_BIDVClient
     {
         public Task<TokenAPI> Get_API_Token();
 

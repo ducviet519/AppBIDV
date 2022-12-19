@@ -8,7 +8,6 @@ namespace DataBIDV.Services.Interfaces
 {
     public interface IUnitOfWork
     {
-        IConnectAPIService API { get; }
-
+        IConnectAPI_BIDVClient API { get; }
     }
 }
