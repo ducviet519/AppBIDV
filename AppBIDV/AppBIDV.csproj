@@ -36,8 +36,9 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
+    <PackageReference Include="BouncyCastle.OpenPGP" Version="1.8.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="5.0.17" />
     <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="5.0.0" />
   </ItemGroup>

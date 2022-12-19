@@ -1,24 +1,17 @@
-﻿using DataBIDV.Models;
+﻿using DataBIDV.Extensions;
+using DataBIDV.Models;
 using DataBIDV.Services.Interfaces;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.WebUtilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using System.Text.Json;
-using Newtonsoft.Json;
-using PgpCore;
-using DataBIDV.Extensions;
-using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Authentication;
 
 namespace DataBIDV.Services.Repositories
 {
@@ -42,11 +35,7 @@ namespace DataBIDV.Services.Repositories
             handler.ClientCertificates.Add(certificate);
             
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback =
-                (httpRequestMessage, cert, cetChain, policyErrors) =>
-                {
-                    return true;
-                };
+            handler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => { return true; };
             var _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = new Uri("https://bidv.net:9303/");
             _httpClient.Timeout = new TimeSpan(0, 0, 30);
@@ -98,27 +87,16 @@ namespace DataBIDV.Services.Repositories
 
         //API Vấn tin danh sách giao dịch (Có mã hóa dữ liệu)
         public async Task<List<GiaoDichModel>> Get_DanhSachGiaoDich_Encrypt(string token, RequestBody request)
-        {
-            
-            List<GiaoDichModel> data = new List<GiaoDichModel>();
-            
-            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);           
-            string requestID = Guid.NewGuid().ToString("N");
-            
+        {           
+            List<GiaoDichModel> data = new List<GiaoDichModel>();           
             try
             {
                 //Encrypt
-                string publicKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\key.asc"));
-                EncryptionKeys encryptionKeys = new EncryptionKeys(publicKey);
-                PGP pgp = new PGP(encryptionKeys);
-                string encryptedContent = StaticHelper.EncodeBase64(await pgp.EncryptArmoredStringAsync(System.Text.Json.JsonSerializer.Serialize(request)));
+                string encryptedContent = StaticHelper.EncryptUsingPublicKey(System.Text.Json.JsonSerializer.Serialize(request));
                 string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { data = encryptedContent });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/acctHis/v1.0");
-                httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                httpRequestMessage.Headers.Add("Timestamp", timestamp);
-                httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
+
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
                 httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
                
@@ -151,10 +129,6 @@ namespace DataBIDV.Services.Repositories
                 string jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctHis/v1.1");
-                httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                httpRequestMessage.Headers.Add("Timestamp", timestamp);
-                httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
                 httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
 
@@ -187,11 +161,6 @@ namespace DataBIDV.Services.Repositories
                 string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { pageNum = request.pageNum });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/openningBal/v1");
-
-                //httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                //httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //httpRequestMessage.Headers.Add("Timestamp", timestamp);
-                //httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
 
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
                 httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
@@ -226,10 +195,6 @@ namespace DataBIDV.Services.Repositories
                 string jsonContent = System.Text.Json.JsonSerializer.Serialize(new { accountNo = request.accountNo });
 
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctDetail/v1");
-                httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                httpRequestMessage.Headers.Add("Timestamp", timestamp);
-                httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
                 httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
                 httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
 

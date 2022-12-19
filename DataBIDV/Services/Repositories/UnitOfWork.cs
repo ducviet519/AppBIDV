@@ -10,10 +10,12 @@ namespace DataBIDV.Services.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         public IConnectAPI_BIDVClient API { get; }
+        public IBIDV_Client BIDV_Client { get; }
 
-        public UnitOfWork(IConnectAPI_BIDVClient connectAPI)
+        public UnitOfWork(IConnectAPI_BIDVClient connectAPI, IBIDV_Client BIDV)
         {
             API = connectAPI;
+            BIDV_Client = BIDV;
         }
 
     }

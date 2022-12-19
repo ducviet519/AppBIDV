@@ -15,6 +15,7 @@ namespace DataBIDV.Services
         {
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IConnectAPI_BIDVClient, ConnectAPI_BIDVClient>();
+            services.AddTransient<IBIDV_Client, BIDV_Client>();
         }
     }
 }

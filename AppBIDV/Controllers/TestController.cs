@@ -26,13 +26,15 @@ namespace AppBIDV.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var data = await _services.API.Get_API_Token();
-            string token = data.access_token;
+            //var data = await _services.API.Get_API_Token();
+            //string token = data.access_token;
 
             var requestBody = new RequestBody { accountNo = "0123456789", pageNum = 1, transDate = "221216" };
             //await _services.API.Get_DanhSachGiaoDich_Encrypt(token, requestBody);
             //await _services.API.Get_DanhSachGiaoDich(token, requestBody);
-            await _services.API.Get_TruyVanSoDu_DauNgay(token, requestBody);
+
+            //await _services.BIDV_Client.Get_TruyVanSoDu_DauNgay(requestBody);
+            await _services.BIDV_Client.Get_DanhSachGiaoDich_Encrypt(requestBody);
 
 
             return View();
