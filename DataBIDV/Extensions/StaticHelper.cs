@@ -40,8 +40,7 @@ namespace DataBIDV.Extensions
         }
         #endregion
 
-        #region Encrypt And Decrypt Public Key And Private Key
-        
+        #region Encrypt And Decrypt Using Public Key And Private Key
         
         public static string EncryptUsingPublicKey(string data)
         {

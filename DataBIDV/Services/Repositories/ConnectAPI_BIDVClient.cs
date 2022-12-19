@@ -106,11 +106,24 @@ namespace DataBIDV.Services.Repositories
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();  
                 }
+
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\acctHis_v1.0.json"));
-                var res = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
-                var decode = StaticHelper.DecodeBase64(res.data);
-                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(decode);
-                
+                var responseData = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
+                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(StaticHelper.DecodeBase64(responseData.data));
+                foreach(var item in list.rows)
+                {
+                    var row = new GiaoDich() {
+                        requestId = responseData.requestId,
+                        accountNo = request.accountNo,
+                        amount = item.amount,
+                        curr = item.curr,
+                        dorc = item.dorc,
+                        remark = item.remark,
+                        transDate = item.transDate,
+                        transTime = item.transTime,
+                    };
+                    data.Add(row);
+                }
                 return data ;
             }
             catch (Exception ex)
@@ -143,8 +156,24 @@ namespace DataBIDV.Services.Repositories
                     var responseContent = await response.Content.ReadAsStringAsync();
 
                 }
+
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\getAcctHis_v1.1.json"));
-                Root_GiaoDich myDeserializedClass = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
+                Root_GiaoDich responseData = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
+                foreach (var item in responseData.data.rows)
+                {
+                    var row = new GiaoDich()
+                    {
+                        requestId = responseData.requestId,
+                        accountNo = request.accountNo,
+                        amount = item.amount,
+                        curr = item.curr,
+                        dorc = item.dorc,
+                        remark = item.remark,
+                        transDate = item.transDate,
+                        transTime = item.transTime,
+                    };
+                    data.Add(row);
+                }
                 return data;
             }
             catch (Exception ex)
@@ -191,6 +220,7 @@ namespace DataBIDV.Services.Repositories
         public async Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(string token, RequestBody request)
         {
 
+            
             List<GiaoDich> data = new List<GiaoDich>();
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);

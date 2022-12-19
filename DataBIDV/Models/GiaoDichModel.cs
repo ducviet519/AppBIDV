@@ -43,5 +43,6 @@ namespace DataBIDV.Models
         public string remark { get; set; }
         public string dorc { get; set; }
         public string amount { get; set; }
+        public string curr { get; set; }
     }
 }
