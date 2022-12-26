@@ -1,6 +1,8 @@
 ﻿using DataBIDV.Extensions;
 using DataBIDV.Models;
 using DataBIDV.Services.Interfaces;
+using Jose;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,18 +20,12 @@ namespace DataBIDV.Services.Repositories
 {
     public class ConnectAPI_BIDVClient : IConnectAPI_BIDVClient
     {
-
+        #region Kết nối API BIDV
         private readonly string baseUrl = "https://bidv.net:9303/bidvorg/service";
-        private readonly string client_id = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_id.asc")) ?? "5fdc43607aba07a73c6fe5a62066f6e0";
-        private readonly string client_secret = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_secret.asc")) ?? "7ed7a5a3ca071c83d5e977863bfc537e";
-        
-        public ConnectAPI_BIDVClient()
-        {
-            
-        }
+        private readonly string client_id = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_id.asc"));
+        private readonly string client_secret = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\client_secret.asc"));
 
-        public static HttpClient GetHttpClient(string token = null){
-            
+        private static HttpClient Get_HttpClient(string token = null){            
             var handler = new HttpClientHandler();
             handler.SslProtocols = SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
             var certificate = new X509Certificate2(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\cert.pem")));
@@ -39,20 +36,10 @@ namespace DataBIDV.Services.Repositories
             var _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = new Uri("https://bidv.net:9303/");
             _httpClient.Timeout = new TimeSpan(0, 0, 30);
-            _httpClient.DefaultRequestHeaders.Clear();
-            if(!String.IsNullOrEmpty(token))
-            {
-                string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
-                string requestID = Guid.NewGuid().ToString("N");
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Timestamp", timestamp);
-                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-API-Interaction-ID", requestID);
-            }    
-
+            _httpClient.DefaultRequestHeaders.Clear();           
             return _httpClient;
         }
-        public async Task<TokenAPI> Get_API_Token()
+        private async Task<TokenAPI> Get_API_Token()
         {
             TokenAPI data = new TokenAPI();
             var requestContent = new FormUrlEncodedContent(new[]
@@ -62,20 +49,18 @@ namespace DataBIDV.Services.Repositories
                 new KeyValuePair<string, string>("client_id", client_id),
                 new KeyValuePair<string, string>("client_secret", client_secret),
             });
-
             try
             {
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/openapi/oauth2/token");
                 httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-                httpRequestMessage.Content = requestContent;             
-                HttpResponseMessage response = await GetHttpClient().SendAsync(httpRequestMessage);
+                httpRequestMessage.Content = requestContent;
+                HttpResponseMessage response = await Get_HttpClient().SendAsync(httpRequestMessage);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     data = JsonConvert.DeserializeObject<TokenAPI>(responseContent);
                 }
-
                 return data;
             }
             catch (Exception ex)
@@ -84,36 +69,76 @@ namespace DataBIDV.Services.Repositories
                 throw;
             }
         }
-
+        private async Task<string> Get_API_Data(string uri, string jsonContent, RequestBody request)
+        {
+            var tokenData = await Get_API_Token();
+            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
+            string requestID = Guid.NewGuid().ToString("N");
+            try
+            {
+                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}{uri}");
+                httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(tokenData.token_type ?? "Bearer", tokenData.access_token ?? "");
+                httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpRequestMessage.Headers.Add("Channel", "ICONNECT");
+                httpRequestMessage.Headers.Add("Timestamp", timestamp);
+                httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
+                httpRequestMessage.Headers.Add("X-JWS-Signature", StaticHelper.CreateTokenJWT(request));
+                httpRequestMessage.Headers.Add("X-Client-Certificate", StaticHelper.GetCertificateString());
+                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
+                HttpResponseMessage response = await Get_HttpClient().SendAsync(httpRequestMessage);
+               
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                string Msg = ex.Message;
+                throw;
+            }
+        }
+        #endregion
+        
         //API Vấn tin danh sách giao dịch (Có mã hóa dữ liệu)
-        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(string token, RequestBody request)
-        {           
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(RequestBody request)
+        {          
             List<GiaoDich> data = new List<GiaoDich>();           
             try
             {
-                //Encrypt
-                string encryptedContent = StaticHelper.EncryptUsingPublicKey(System.Text.Json.JsonSerializer.Serialize(request));
-                string jsonContent = JsonConvert.SerializeObject(new { data = encryptedContent });
+                Aes aes = Aes.Create();
+                aes.GenerateKey();                
 
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/acctHis/v1.0");
-
-                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
-                httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-               
-                HttpResponseMessage response = await GetHttpClient().SendAsync(httpRequestMessage);
- 
-                if (response.IsSuccessStatusCode)
+                string payload = System.Text.Json.JsonSerializer.Serialize(request);
+                
+                string symmetric_key = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\symmetric_key.asc"));
+                byte[] kid = Encoding.ASCII.GetBytes(symmetric_key);
+                var headers = new Dictionary<string, object>()
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();  
-                }
+                    { "kid", symmetric_key},
+                    { "enc", "A256CBC_HS512"},
+                };
+                JweRecipient r1 = new JweRecipient(JweAlgorithm.DIR, kid, header: headers);
+                string jsonContent = Jose.JWE.Encrypt( payload, new[] { r1 }, JweEncryption.A256CBC_HS512, mode: SerializationMode.Json);
+
+                string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
+                string requestID = Guid.NewGuid().ToString("N");
+                string auth = (await Get_API_Token()).access_token;
+                string sign = StaticHelper.CreateTokenJWT(request);
+                string cert = StaticHelper.GetCertificateString();
+                var certificate = new X509Certificate2(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\bidv_certificate.pem")));
+                string tokenJWS = StaticHelper.CreateTokenJWT(request);
+
+                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent, request);
 
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\acctHis_v1.0.json"));
-                var responseData = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
-                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(StaticHelper.DecodeBase64(responseData.data));
+                var model = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
+                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(StaticHelper.DecodeBase64(model.data));
                 foreach(var item in list.rows)
                 {
                     var row = new GiaoDich() {
-                        requestId = responseData.requestId,
+                        requestId = model.requestId,
                         accountNo = request.accountNo,
                         amount = item.amount,
                         curr = item.curr,
@@ -134,36 +159,20 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin danh sách giao dịch (Không mã hóa dữ liệu)
-        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_DanhSachGiaoDich(RequestBody request)
         {
-
             List<GiaoDich> data = new List<GiaoDich>();
-
-            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
-            string requestID = Guid.NewGuid().ToString("N");
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(request);
-
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctHis/v1.1");
-                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
-                httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-
-                HttpResponseMessage response = await GetHttpClient().SendAsync(httpRequestMessage);
- 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-
-                }
-
+                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent, request);
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\getAcctHis_v1.1.json"));
-                Root_GiaoDich responseData = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
-                foreach (var item in responseData.data.rows)
+                Root_GiaoDich model = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
+                foreach (var item in model.data.rows)
                 {
                     var row = new GiaoDich()
                     {
-                        requestId = responseData.requestId,
+                        requestId = model.requestId,
                         accountNo = request.accountNo,
                         amount = item.amount,
                         curr = item.curr,
@@ -184,7 +193,7 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư đầu ngày
-        public async Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(string token, RequestBody request)
+        public async Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(RequestBody request)
         {
             List<GiaoDich> data = new List<GiaoDich>();
 
@@ -193,20 +202,7 @@ namespace DataBIDV.Services.Repositories
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(new { pageNum = request.pageNum });
-
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/openningBal/v1");
-
-                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
-                httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-
-                HttpResponseMessage response = await GetHttpClient(token).SendAsync(httpRequestMessage);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-
-                }
-
+                var responseData = await Get_API_Data("/iconnect/account/openningBal/v1", jsonContent, request);
                 return data;
             }
             catch (Exception ex)
@@ -217,29 +213,13 @@ namespace DataBIDV.Services.Repositories
         }
 
         //API Vấn tin số dư tài khoản
-        public async Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(string token, RequestBody request)
-        {
-
-            
+        public async Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(RequestBody request)
+        {           
             List<GiaoDich> data = new List<GiaoDich>();
-
-            string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
-            string requestID = Guid.NewGuid().ToString("N");
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(new { accountNo = request.accountNo });
-
-                var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/iconnect/account/getAcctDetail/v1");
-                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
-                httpRequestMessage.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-
-                HttpResponseMessage response = await GetHttpClient().SendAsync(httpRequestMessage);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                }
-
+                var responseData = await Get_API_Data("/iconnect/account/getAcctDetail/v1", jsonContent, request);
                 return data;
             }
             catch (Exception ex)

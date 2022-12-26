@@ -9,14 +9,12 @@ namespace DataBIDV.Services.Interfaces
 {
     public interface IConnectAPI_BIDVClient
     {
-        public Task<TokenAPI> Get_API_Token();
+        public Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(RequestBody request);
 
-        public Task<List<GiaoDich>> Get_DanhSachGiaoDich_Encrypt(string token, RequestBody request);
+        public Task<List<GiaoDich>> Get_DanhSachGiaoDich(RequestBody request);
 
-        public Task<List<GiaoDich>> Get_DanhSachGiaoDich(string token, RequestBody request);
+        public Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(RequestBody request);
 
-        public Task<List<GiaoDich>> Get_TruyVanSoDu_DauNgay(string token, RequestBody request);
-
-        public Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(string token, RequestBody request);
+        public Task<List<GiaoDich>> Get_TruyVanSoDu_TaiKhoan(RequestBody request);
     }
 }

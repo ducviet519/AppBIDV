@@ -9,7 +9,5 @@ namespace DataBIDV.Services.Interfaces
     public interface IUnitOfWork
     {
         IConnectAPI_BIDVClient API { get; }
-
-        IBIDV_Client BIDV_Client { get; }
     }
 }

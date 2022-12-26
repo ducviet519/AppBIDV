@@ -1,19 +1,19 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
-#if NET5_0_OR_GREATER
-using System.Runtime.Versioning;
-#endif
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Engines;
+using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
+using Jose;
+using DataBIDV.Models;
+using Newtonsoft.Json;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DataBIDV.Extensions
 {
@@ -67,14 +67,9 @@ namespace DataBIDV.Extensions
             try
             {
                 byte[] byteData = Convert.FromBase64String(data);
-                string privateKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\private.pem"));
-                RSACryptoServiceProvider RSAprivateKey = ImportPrivateKey(privateKey);
-                var output = Encoding.UTF8.GetString(RSAprivateKey.Decrypt(byteData, RSAEncryptionPadding.Pkcs1));
                 
-                //var rsa = RSA.Create();
-                //rsa.ImportFromPem(privateKey.ToCharArray());
-                //var rsa = ReadKeyFromFile();
-                //var keys = Encoding.UTF8.GetString(rsa.Decrypt(byteData, RSAEncryptionPadding.OaepSHA256));
+                RSACryptoServiceProvider RSAprivateKey = GetPrivateKey();
+                var output = Encoding.UTF8.GetString(RSAprivateKey.Decrypt(byteData, RSAEncryptionPadding.Pkcs1));
                 return output;
             }
             catch (Exception ex) {
@@ -82,15 +77,25 @@ namespace DataBIDV.Extensions
                 return null;
             }           
         }
-        private static RSACryptoServiceProvider ImportPrivateKey(string pem)
+        public static RSACryptoServiceProvider GetPrivateKey()
         {
-            PemReader pr = new PemReader(new StringReader(pem), new PasswordFinder("bidv"));
+            string privateKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\private.pem"));
+            //PemReader pr = new PemReader(new StringReader(privateKey), new PasswordFinder("bidv"));
+            PemReader pr = new PemReader(new StringReader(privateKey), new PasswordFinder("bidv"));
             AsymmetricCipherKeyPair KeyPair = (AsymmetricCipherKeyPair)pr.ReadObject();
             RSAParameters rsaParams = DotNetUtilities.ToRSAParameters((RsaPrivateCrtKeyParameters)KeyPair.Private);
 
             RSACryptoServiceProvider csp = new RSACryptoServiceProvider();// cspParams);
             csp.ImportParameters(rsaParams);
             return csp;
+        }
+
+        public static RSA GetPublicKey()
+        {
+            string publicKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\public.pem"));
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(publicKey.ToCharArray());
+            return rsa;
         }
         private class PasswordFinder : IPasswordFinder
         {
@@ -108,5 +113,38 @@ namespace DataBIDV.Extensions
             }
         }
         #endregion
+
+        #region General JWE JSON Serialization
+        
+        //JWT with a Private RSA Key
+        public static string CreateTokenJWT(RequestBody request)
+        {
+            string json = System.Text.Json.JsonSerializer.Serialize(request);
+            string jwk = RSAKeys.ExportPrivateKey(GetPrivateKey());
+            var rsa = RSA.Create();
+            rsa.ImportRSAPublicKey(GetPublicKey().ExportRSAPublicKey(), out _);
+            rsa.ImportRSAPrivateKey(GetPrivateKey().ExportRSAPrivateKey(), out _);
+            string token =  Jose.JWT.Encode(json, rsa, Jose.JwsAlgorithm.RS256, options: new JwtOptions { DetachPayload = true });
+            return token;
+        }
+
+        public static string DecodeToken(string token)
+        {
+            return Jose.JWT.Decode(token, GetPublicKey(), Jose.JwsAlgorithm.RS256);
+        }
+        #endregion
+
+        #region Get Certificate Only String
+        public static string GetCertificateString()
+        {
+            string certPemString = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\cert.pem"));
+            return certPemString.Replace("-----BEGIN CERTIFICATE-----", null)
+                                        .Replace("-----END CERTIFICATE-----", null)
+                                        .Replace(Environment.NewLine, null)
+                                        .Trim();             
+        }
+
+        #endregion
     }
 }
+

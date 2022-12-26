@@ -1,16 +1,10 @@
-﻿using DataBIDV.Extensions;
-using DataBIDV.Models;
+﻿using DataBIDV.Models;
 using DataBIDV.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace AppBIDV.Controllers
@@ -26,18 +20,14 @@ namespace AppBIDV.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var data = await _services.API.Get_API_Token();
-            string token = data.access_token;
+            string transDate = DateTime.Now.ToString("yyMMdd", CultureInfo.InvariantCulture);
+            string accountNo = new Random().Next().ToString();
 
-            var requestBody = new RequestBody { accountNo = "0123456789", pageNum = 1, transDate = "221216" };
-            List<GiaoDich> DanhSachGiaoDich_Encrypt =  await _services.API.Get_DanhSachGiaoDich_Encrypt(token, requestBody);
-            List<GiaoDich> DanhSachGiaoDich = await _services.API.Get_DanhSachGiaoDich(token, requestBody);
-            await _services.API.Get_TruyVanSoDu_DauNgay(token, requestBody);
-            await _services.API.Get_TruyVanSoDu_TaiKhoan(token, requestBody);
-
-            //await _services.BIDV_Client.Get_TruyVanSoDu_DauNgay(requestBody);
-            await _services.BIDV_Client.Get_DanhSachGiaoDich_Encrypt(requestBody);
-
+            var requestBody = new RequestBody { accountNo = accountNo, pageNum = 1, transDate = transDate };
+            List<GiaoDich> DanhSachGiaoDich_Encrypt =  await _services.API.Get_DanhSachGiaoDich_Encrypt(requestBody);
+            //List<GiaoDich> DanhSachGiaoDich = await _services.API.Get_DanhSachGiaoDich(requestBody);
+            //await _services.API.Get_TruyVanSoDu_DauNgay(requestBody);
+            //await _services.API.Get_TruyVanSoDu_TaiKhoan(requestBody);
 
             return View();
         }
