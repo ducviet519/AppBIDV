@@ -45,4 +45,6 @@ namespace DataBIDV.Models
         public string amount { get; set; }
         public string curr { get; set; }
     }
+
+
 }

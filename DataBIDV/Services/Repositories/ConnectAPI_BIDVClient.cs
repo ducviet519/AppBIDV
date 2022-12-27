@@ -69,7 +69,7 @@ namespace DataBIDV.Services.Repositories
                 throw;
             }
         }
-        private async Task<string> Get_API_Data(string uri, string jsonContent, RequestBody request)
+        private async Task<string> Get_API_Data(string uri, string jsonContent)
         {
             var tokenData = await Get_API_Token();
             string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
@@ -82,9 +82,9 @@ namespace DataBIDV.Services.Repositories
                 httpRequestMessage.Headers.Add("Channel", "ICONNECT");
                 httpRequestMessage.Headers.Add("Timestamp", timestamp);
                 httpRequestMessage.Headers.Add("X-API-Interaction-ID", requestID);
-                httpRequestMessage.Headers.Add("X-JWS-Signature", StaticHelper.CreateTokenJWT(request));
+                httpRequestMessage.Headers.Add("X-JWS-Signature", StaticHelper.CreateTokenJWS(jsonContent));
                 httpRequestMessage.Headers.Add("X-Client-Certificate", StaticHelper.GetCertificateString());
-                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8);
+                httpRequestMessage.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await Get_HttpClient().SendAsync(httpRequestMessage);
                
                 if (response.IsSuccessStatusCode)
@@ -107,37 +107,13 @@ namespace DataBIDV.Services.Repositories
             List<GiaoDich> data = new List<GiaoDich>();           
             try
             {
-                Aes aes = Aes.Create();
-                aes.GenerateKey();                
-
-                string payload = System.Text.Json.JsonSerializer.Serialize(request);
-                
-                string symmetric_key = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\symmetric_key.asc"));
-                byte[] kid = Encoding.ASCII.GetBytes(symmetric_key);
-                var headers = new Dictionary<string, object>()
+                string jsonContent = StaticHelper.EncryptionJWE(request);
+                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent);
+                var model = JsonConvert.DeserializeObject<Root_GiaoDich>(responseData);
+                foreach (var item in model.data.rows)
                 {
-                    { "kid", symmetric_key},
-                    { "enc", "A256CBC_HS512"},
-                };
-                JweRecipient r1 = new JweRecipient(JweAlgorithm.DIR, kid, header: headers);
-                string jsonContent = Jose.JWE.Encrypt( payload, new[] { r1 }, JweEncryption.A256CBC_HS512, mode: SerializationMode.Json);
-
-                string timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffK", CultureInfo.InvariantCulture);
-                string requestID = Guid.NewGuid().ToString("N");
-                string auth = (await Get_API_Token()).access_token;
-                string sign = StaticHelper.CreateTokenJWT(request);
-                string cert = StaticHelper.GetCertificateString();
-                var certificate = new X509Certificate2(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\bidv_certificate.pem")));
-                string tokenJWS = StaticHelper.CreateTokenJWT(request);
-
-                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent, request);
-
-                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\acctHis_v1.0.json"));
-                var model = JsonConvert.DeserializeObject<ResponseGiaoDich_Encrypt>(json);
-                Data_GiaoDich list = JsonConvert.DeserializeObject<Data_GiaoDich>(StaticHelper.DecodeBase64(model.data));
-                foreach(var item in list.rows)
-                {
-                    var row = new GiaoDich() {
+                    var row = new GiaoDich()
+                    {
                         requestId = model.requestId,
                         accountNo = request.accountNo,
                         amount = item.amount,
@@ -149,7 +125,7 @@ namespace DataBIDV.Services.Repositories
                     };
                     data.Add(row);
                 }
-                return data ;
+                return data;
             }
             catch (Exception ex)
             {
@@ -165,7 +141,7 @@ namespace DataBIDV.Services.Repositories
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(request);
-                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent, request);
+                var responseData = await Get_API_Data("/iconnect/account/getAcctHis/v1.1", jsonContent);
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\getAcctHis_v1.1.json"));
                 Root_GiaoDich model = JsonConvert.DeserializeObject<Root_GiaoDich>(json);
                 foreach (var item in model.data.rows)
@@ -202,7 +178,7 @@ namespace DataBIDV.Services.Repositories
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(new { pageNum = request.pageNum });
-                var responseData = await Get_API_Data("/iconnect/account/openningBal/v1", jsonContent, request);
+                var responseData = await Get_API_Data("/iconnect/account/openningBal/v1", jsonContent);
                 return data;
             }
             catch (Exception ex)
@@ -219,7 +195,7 @@ namespace DataBIDV.Services.Repositories
             try
             {
                 string jsonContent = JsonConvert.SerializeObject(new { accountNo = request.accountNo });
-                var responseData = await Get_API_Data("/iconnect/account/getAcctDetail/v1", jsonContent, request);
+                var responseData = await Get_API_Data("/iconnect/account/getAcctDetail/v1", jsonContent);
                 return data;
             }
             catch (Exception ex)

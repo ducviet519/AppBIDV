@@ -1,19 +1,20 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using DataBIDV.Models;
+using Jose;
+using JWT;
+using JWT.Algorithms;
+using JWT.Serializers;
+using Microsoft.IdentityModel.Tokens;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Org.BouncyCastle.Crypto;
-using System.Security.Claims;
-using System.Collections.Generic;
-using System.Linq;
-using Jose;
-using DataBIDV.Models;
-using Newtonsoft.Json;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.IdentityModel.Tokens;
 
 namespace DataBIDV.Extensions
 {
@@ -114,24 +115,38 @@ namespace DataBIDV.Extensions
         }
         #endregion
 
-        #region General JWE JSON Serialization
-        
-        //JWT with a Private RSA Key
-        public static string CreateTokenJWT(RequestBody request)
-        {
-            string json = System.Text.Json.JsonSerializer.Serialize(request);
-            string jwk = RSAKeys.ExportPrivateKey(GetPrivateKey());
+        #region General JSON Web Signature (JWS)
+
+        public static string CreateTokenJWS(string json)
+        {            
             var rsa = RSA.Create();
             rsa.ImportRSAPublicKey(GetPublicKey().ExportRSAPublicKey(), out _);
             rsa.ImportRSAPrivateKey(GetPrivateKey().ExportRSAPrivateKey(), out _);
-            string token =  Jose.JWT.Encode(json, rsa, Jose.JwsAlgorithm.RS256, options: new JwtOptions { DetachPayload = true });
-            return token;
+
+            return Jose.JWT.Encode(json, rsa, Jose.JwsAlgorithm.RS256, options: new JwtOptions { DetachPayload = true });
         }
 
-        public static string DecodeToken(string token)
+        #endregion
+
+        #region General JSON Web Encryption (JWE)
+
+        public static string EncryptionJWE(RequestBody request)
         {
-            return Jose.JWT.Decode(token, GetPublicKey(), Jose.JwsAlgorithm.RS256);
+            var symmetric_key = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Keys\\symmetric_key.asc"));
+            string json = System.Text.Json.JsonSerializer.Serialize(request);
+
+            var key = ConvertHexStringToByteArray(symmetric_key);
+            var jwk = new Jwk(ConvertHexStringToByteArray(symmetric_key)); 
+
+            var header = new Dictionary<string, object>()
+            {
+                //{ "alg", "dir" },
+                //{ "enc", "A128CBC_HS256" }
+            };
+
+            return DataBIDV.Extensions.JWE.Encrypt(json, new[] { new JweRecipient(JweAlgorithm.DIR, key) }, JweEncryption.A128CBC_HS256, extraProtectedHeaders: header);
         }
+                
         #endregion
 
         #region Get Certificate Only String
@@ -144,6 +159,25 @@ namespace DataBIDV.Extensions
                                         .Trim();             
         }
 
+        #endregion
+
+        #region ConvertHexStringToByteArray
+        public static byte[] ConvertHexStringToByteArray(string hexString)
+        {
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException(String.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
+            }
+
+            byte[] data = new byte[hexString.Length / 2];
+            for (int index = 0; index < data.Length; index++)
+            {
+                string byteValue = hexString.Substring(index * 2, 2);
+                data[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+
+            return data;
+        }
         #endregion
     }
 }

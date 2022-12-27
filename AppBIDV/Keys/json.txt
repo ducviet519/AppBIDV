@@ -1,0 +1,9 @@
+﻿{
+  "ciphertext": "MebxwuEPId23WuM7cyVu5DFaHVrZXy0GWLboQWfw2j7E3EdEGt04_4ADNI600_ZwksQvYOD198L2b2G-s_aiQw",
+  "iv": "ugAMkj3nHw-J5--jcfs5lg",
+  "recipients": [
+    {}
+  ],
+  "tag": "A2GX1BsMuSilrT2unCeYcQ",
+  "protected": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0"
+}

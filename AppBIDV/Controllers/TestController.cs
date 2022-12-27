@@ -23,7 +23,7 @@ namespace AppBIDV.Controllers
             string transDate = DateTime.Now.ToString("yyMMdd", CultureInfo.InvariantCulture);
             string accountNo = new Random().Next().ToString();
 
-            var requestBody = new RequestBody { accountNo = accountNo, pageNum = 1, transDate = transDate };
+            var requestBody = new RequestBody { accountNo = "21210000421447", pageNum = 1, transDate = "" };
             List<GiaoDich> DanhSachGiaoDich_Encrypt =  await _services.API.Get_DanhSachGiaoDich_Encrypt(requestBody);
             //List<GiaoDich> DanhSachGiaoDich = await _services.API.Get_DanhSachGiaoDich(requestBody);
             //await _services.API.Get_TruyVanSoDu_DauNgay(requestBody);
